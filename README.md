@@ -1,5 +1,5 @@
 # Air-drum simulator
-Real-time virtual drum kit. built with MediaPipe hand-tracking and computer vision.
+Real-time virtual drum kit. Built with using MediaPipe hand-tracking & computer vision.
 The program tracks hand movement with a webcam and plays drum sounds when your finger hits different drum zones on the screen.
 
 ## Installation
@@ -7,7 +7,7 @@ The program tracks hand movement with a webcam and plays drum sounds when your f
 Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/hiromaruyama/air-drum.git>
 cd air-drum
 ```
 
@@ -33,9 +33,9 @@ python3 main.py
 
 ```text
 air-drum/
-├── main.py
-├── requirements.txt
-├── pictures/
-├── soundEffect/
-└── README.md
+|__ main.py
+|__ requirements.txt
+|__ pictures/
+|__ soundEffect/
+|__ README.md
 ```
