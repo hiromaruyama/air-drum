@@ -1,9 +1,14 @@
 import cv2
-import mediapipe.python.solutions.hands as mp_hands
-import mediapipe.python.solutions.drawing_utils as mp_draw
+import mediapipe as mp
+#import mediapipe.python.solutions.hands as mp_hands
+#import mediapipe.python.solutions.drawing_utils as mp_draw
 import time
 import pygame
 
+
+
+mp_hands = mp.solutions.hands
+mp_draw = mp.solutions.drawing_utils
 #Detects if inside the zone.
 def inside_zone(x, y, zone):
     x1, y1, x2, y2 = zone
@@ -13,14 +18,14 @@ def inside_zone(x, y, zone):
 
 def main():
     pygame.mixer.init()
-    snare_sound = pygame.mixer.Sound('soundEffect/snare.wav')
-    hi_hat_sound = pygame.mixer.Sound('soundEffect/hi-hat.wav')
-    cymbal_sound = pygame.mixer.Sound('soundEffect/crash-cymbal.wav')
-    bass_drum_sound = pygame.mixer.Sound("soundEffect/kick-drum.wav")  
-    snare_img = cv2.imread("pictures/snare.jpg")
-    hihat_img = cv2.imread("pictures/hi-hat.jpg")
-    cymbal_img = cv2.imread("pictures/crash-cymbal.jpg")
-    kick_img = cv2.imread("pictures/kick-drum.jpeg")  
+    snare_sound = pygame.mixer.Sound('air-Drum/soundEffect/snare.wav')
+    hi_hat_sound = pygame.mixer.Sound('air-Drum/soundEffect/hi-hat.wav')
+    cymbal_sound = pygame.mixer.Sound('air-Drum/soundEffect/crash-cymbal.wav')
+    bass_drum_sound = pygame.mixer.Sound('air-Drum/soundEffect/kick-drum.wav')  
+    snare_img = cv2.imread("air-Drum/pictures/snare.jpg")
+    hihat_img = cv2.imread("air-Drum/pictures/hi-hat.jpg")
+    cymbal_img = cv2.imread("air-Drum/pictures/crash-cymbal.jpg")
+    kick_img = cv2.imread("air-Drum/pictures/kick-drum.jpeg")  
     snare_img = cv2.resize(snare_img, (300, 300))
     hihat_img = cv2.resize(hihat_img, (300, 300))
     cymbal_img = cv2.resize(cymbal_img, (300, 300))
