@@ -17,20 +17,15 @@ def inside_zone(x, y, zone):
     return False
 
 def main():
+    pygame.mixer.pre_init(44100, -16, 2, 512) #To reduce lag of the sound
     pygame.mixer.init()
-    snare_sound = pygame.mixer.Sound('air-Drum/soundEffect/snare.wav')
-    hi_hat_sound = pygame.mixer.Sound('air-Drum/soundEffect/hi-hat.wav')
-    cymbal_sound = pygame.mixer.Sound('air-Drum/soundEffect/crash-cymbal.wav')
-    bass_drum_sound = pygame.mixer.Sound('air-Drum/soundEffect/kick-drum.wav')  
-    snare_img = cv2.imread("air-Drum/pictures/snare.jpg")
-    hihat_img = cv2.imread("air-Drum/pictures/hi-hat.jpg")
-    cymbal_img = cv2.imread("air-Drum/pictures/crash-cymbal.jpg")
-    kick_img = cv2.imread("air-Drum/pictures/kick-drum.jpeg")  
-    snare_img = cv2.resize(snare_img, (300, 300))
-    hihat_img = cv2.resize(hihat_img, (300, 300))
-    cymbal_img = cv2.resize(cymbal_img, (300, 300))
-    kick_img = cv2.resize(kick_img, (300, 300))
+    
+    snare_img = cv2.imread("pictures/snare.png")
+    hihat_img = cv2.imread("pictures/hiHat.png")
+    cymbal_img = cv2.imread("pictures/cymbal.png")
+    bass_img = cv2.imread("pictures/bass.png")  
 
+    print(snare_img.shape)
     
     #1) Initialization, capture webcam and hand tracking model
     cap = cv2.VideoCapture(0)
@@ -40,10 +35,13 @@ def main():
         min_tracking_confidence=0.7)
 
     prev_y = None
-    #2) Main loop, read frames from webcam, process them with the hand tracking model and display the results
     last_hit_time = 0
     cooldown = 0.2
+    hit_state = {"Cymbal": 0, "Hi-Hat": 0, "Snare": 0, "Bass": 0}
+    
+    #2) Main loop, read frames from webcam, process them with the hand tracking model and display the results
     while True:
+    
         ret, frame = cap.read()
         if not ret:
             break
@@ -52,6 +50,30 @@ def main():
         #convert image to RGB and process it with the hand tracking model
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(rgb)
+
+        h,w,c = frame.shape
+        instruments = {
+        "Cymbal": {"color": (0, 255, 255), "sound_file": "soundEffect/cymbal.wav", "box": (3*w//4, 0, w, h//3), "sound": pygame.mixer.Sound('soundEffect/cymbal.wav')},
+        "Hi-Hat": {"color": (0, 165, 255), "sound_file": "soundEffect/hiHat.wav", "box": (0, 0, w//4, h//3), "sound": pygame.mixer.Sound('soundEffect/hihat.wav')},
+        "Snare":  {"color": (0, 0, 255), "sound_file": "soundEffect/snare.wav", "box": (0, 2*h//3, w//4, h), "sound": pygame.mixer.Sound('soundEffect/snare.wav')},
+        "Bass":   {"color": (255, 0, 0), "sound_file": "soundEffect/bass.wav", "box": (3*w//4, 2*h//3, w, h), "sound": pygame.mixer.Sound('soundEffect/bass.wav')}
+        } 
+    # snare_sound = pygame.mixer.Sound('soundEffect/snare.wav')
+    # hi_hat_sound = pygame.mixer.Sound('soundEffect/hihat.wav')
+    # cymbal_sound = pygame.mixer.Sound('soundEffect/cymbal.wav')
+    #bass_drum_sound = pygame.mixer.Sound('soundEffect/bass.wav')  
+        current_hits = {name: 0 for name in instruments}
+        #resize
+        snare_img = cv2.resize(snare_img, ((w//4, h//3)))
+        hihat_img = cv2.resize(hihat_img, (w//4, h//3))
+        cymbal_img = cv2.resize(cymbal_img, ((w//4, h//3)))
+        bass_img = cv2.resize(bass_img, ((w//4, h//3)))
+        frame[0:h//3, 0:w//4] = hihat_img
+        frame[2*h//3:h, 0:w//4] = snare_img
+        frame[0:h//3, 3*w//4:w] = cymbal_img
+        frame[2*h//3:h, 3*w//4:w] = bass_img
+
+
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:   
@@ -62,12 +84,7 @@ def main():
                     mp_hands.HAND_CONNECTIONS
                 )
                 
-                h,w,c = frame.shape
-                frame[0:300, 0:300] = hihat_img
-                frame[h-300:h, 0:300] = snare_img
-                frame[0:300, w-300:w] = cymbal_img
-                frame[h-300:h, w-300:w] = kick_img
-
+                
                 index_finger = hand_landmarks.landmark[6]
                 xI = int(index_finger.x * w)
                 yI = int(index_finger.y * h)
@@ -80,10 +97,10 @@ def main():
                 cymbal = (3*w//4, 0, w, h//3)
                 bass_drum = (3*w//4, 2*h//3, w, h)
 
-                cv2.rectangle(frame, (snare[0], snare[1]), (snare[2], snare[3]), (255,255,255), 2) 
-                cv2.rectangle(frame, (hi_hat[0], hi_hat[1]), (hi_hat[2], hi_hat[3]), (255,0,0), 2)
-                cv2.rectangle(frame, (cymbal[0], cymbal[1]), (cymbal[2], cymbal[3]), (0,255,255), 2)
-                cv2.rectangle(frame, (bass_drum[0], bass_drum[1]), (bass_drum[2], bass_drum[3]), (0,0,255), 2)
+                cv2.rectangle(frame, (instruments["Snare"]["box"][0], instruments["Snare"]["box"][1]), (instruments["Snare"]["box"][2], instruments["Snare"]["box"][3]), (255,255,255), 2) 
+                cv2.rectangle(frame, (instruments["Hi-Hat"]["box"][0], instruments["Hi-Hat"]["box"][1]), (instruments["Hi-Hat"]["box"][2], instruments["Hi-Hat"]["box"][3]), (255,0,0), 2)
+                cv2.rectangle(frame, (instruments["Cymbal"]["box"][0], instruments["Cymbal"]["box"][1]), (instruments["Cymbal"]["box"][2], instruments["Cymbal"]["box"][3]), (0,255,255), 2)
+                cv2.rectangle(frame, (instruments["Bass"]["box"][0], instruments["Bass"]["box"][1]), (instruments["Bass"]["box"][2], instruments["Bass"]["box"][3]), (0,0,255), 2)
                 
 
                 cv2.putText(frame, "SNARE", (snare[2]-70, snare[1]),
@@ -98,39 +115,26 @@ def main():
 
                 cv2.putText(frame, "BASS DRUM", (bass_drum[0]+10, bass_drum[1]-30),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            
+                for name, data in instruments.items():
+                    if inside_zone(xI,yI, data["box"]):
+                        current_hits[name] +=1
                 
+            if current_time - last_hit_time > cooldown:
+                for name, data in instruments.items():
+                    if current_hits[name] > hit_state[name]:
+                        data["sound"].play()
+                        last_hit_time = current_time
+                        cv2.putText(frame, f"HIT {name}!", (w//2, h//2), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 4)
+                    hit_state[name] = current_hits[name]
 
-                if prev_y is not None:
-                    if current_time - last_hit_time > cooldown:
-                        velocity_y = yI - prev_y
-                        if abs(velocity_y) > 80 and inside_zone(xI, yI, snare):
-                            snare_sound.play()
-                            last_hit_time = current_time
-                            cv2.putText(frame, "HIT SNARE!", (w//2, h//2),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 4)
-                        if abs(velocity_y) > 80 and inside_zone(xI, yI, hi_hat):
-                            hi_hat_sound.play()
-                            last_hit_time = current_time
-                            cv2.putText(frame, "HIT HI-HAT!", (w//2, h//2),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 4)
-                        if abs(velocity_y) > 80 and inside_zone(xI, yI, cymbal):
-                            cymbal_sound.play()
-                            last_hit_time = current_time
-                            cv2.putText(frame, "HIT CYMBAL!", (w//2, h//2),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 4)
-                        if abs(velocity_y) > 80 and inside_zone(xI, yI, bass_drum):
-                            bass_drum_sound.play()
-                            last_hit_time = current_time
-                            cv2.putText(frame, "HIT BASS DRUM!", (w//2, h//2),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 4)
-        
-                prev_y = yI
-
-        cv2.imshow("Hand Tracking", frame)
+        cv2.imshow("Drum Tracking", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
     cap.release()
     cv2.destroyAllWindows()
+    pygame.quit()
 
 main()
