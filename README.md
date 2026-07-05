@@ -33,7 +33,7 @@ python3 main.py
 * One significant challenge I encountered during this project was the duplication of sound triggering when using multiple-hand detection. When one hand was inside the box and the other hand was outside the box, it kept creating duplicated sounds. It was not supposed to make duplicated sounds as when one hand is inside the box and hands are not outside the box yet, that would be consider as one sound.
 Because this algorithm defaults to switching between left and right hands by default, it causes duplicate sound when using multiple hand detection. I have additionally created the cooldown to stop the duplicate sound, but that was only a temporary solution.
 
-# Solution
+### Solution
 * To solve this, I created current_hits of each instrument and hit_state of each instrument.
 Current_hit would count how many hands are currently inside the box for each instrument.
 Hit_state stores how many previous frame's hit were counted for each instrument.
